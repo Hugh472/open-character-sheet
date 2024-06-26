@@ -1,0 +1,61 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    - name: Install WebAssembly target
+      run: rustup target add wasm32-unknown-unknown
+
+    - name: Install wasm-bindgen-cli
+      run: cargo install wasm-bindgen-cli
+
+    - name: Build frontend
+      run: wasm-pack build --target web
+
+    - name: Build backend
+      run: cargo build --release
+
+    - name: Run tests
+      run: cargo test
+
+    - name: Check code coverage
+      run: cargo tarpaulin --out Xml
+
+    - name: Upload coverage to codecov
+      uses: codecov/codecov-action@v2
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: true
+        verbose: true
+
+    - name: SCA scan with Snyk
+      uses: snyk/actions/snyk@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    - name: Publish release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          target/release/dnd-character-sheet
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
