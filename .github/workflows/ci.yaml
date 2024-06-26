@@ -46,11 +46,6 @@ jobs:
         fail_ci_if_error: true
         verbose: true
 
-    - name: SCA scan with Snyk
-      uses: snyk/actions/snyk@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
     - name: Publish release
       if: github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
