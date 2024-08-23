@@ -31,10 +31,15 @@ jobs:
       run: cargo install wasm-pack
 
     - name: Build frontend
-      run: wasm-pack build --target web
+      run: |
+        cd src
+        wasm-pack build --target web
 
     - name: Build backend
-      run: cargo build --release
+      run: |
+        cd ../src-tauri
+        cargo build --release
+        cd .. 
 
     - name: Run tests
       run: cargo test
